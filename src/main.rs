@@ -1,18 +1,13 @@
+mod app;
 mod audio;
 
-use crate::audio::MusicPlayer;
+use app::App;
 
-fn play_music() -> Result<(), Box<dyn std::error::Error>> {
-    let music = MusicPlayer::new()?;
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let app = App::new()?;
 
-    music.play_file("assets/example.mp3")?;
-    music.sleep_until_end();
+    app.run()?;
 
     Ok(())
-
-}
-
-fn main() {
-    play_music();
 }
 
