@@ -1,19 +1,12 @@
+use crate::tui::Colors;
 use std::io::Result;
 
 use crossterm::event::{self, KeyCode};
 use ratatui::layout::{Alignment, Constraint, Layout, Rect};
-use ratatui::style::{Color, Style, Stylize};
+use ratatui::style::{Style, Stylize};
 use ratatui::widgets::{Block, BorderType, Borders, Cell, Padding, Row, Table, TableState};
 use ratatui::{DefaultTerminal, Frame};
 
-pub struct Colors;
-
-impl Colors {
-    pub const BORDER: Color = Color::Rgb(125, 122, 129);
-    pub const BG_HOVER: Color = Color::Rgb(182, 215, 221);
-    pub const TEXT: Color = Color::Rgb(170, 165, 179);
-    pub const TEXT_HOVER: Color = Color::Black;
-}
 
 #[derive(Debug, Default)]
 struct Song {
