@@ -1,0 +1,144 @@
+use std::io::Result;
+
+use crossterm::event::{self, KeyCode};
+use ratatui::layout::{Alignment, Constraint, Layout, Rect};
+use ratatui::style::{Color, Style, Stylize};
+use ratatui::widgets::{Block, BorderType, Borders, Cell, Padding, Row, Table, TableState};
+use ratatui::{DefaultTerminal, Frame};
+
+pub struct Colors;
+
+impl Colors {
+    pub const BORDER: Color = Color::Rgb(125, 122, 129);
+    pub const BG_HOVER: Color = Color::Rgb(182, 215, 221);
+    pub const TEXT: Color = Color::Rgb(170, 165, 179);
+    pub const TEXT_HOVER: Color = Color::Black;
+}
+
+#[derive(Debug, Default)]
+struct Song {
+    artist: String,
+    title: String,
+    duration: String
+}
+
+#[derive(Debug, Default)]
+pub struct App {
+    state: TableState,
+    songs: Vec<Song>,
+}
+
+impl App {
+    pub fn new() -> Self {
+        let songs: Vec<Song> = vec![
+            Song { artist: "RADWIMPS".into(), title: "Track One".into(), duration: "3:12".into() },
+            Song { artist: "Dehumanizing Itatrain Worship".into(), title: "Track Two".into(), duration: "4:05".into() },
+            Song { artist: "Awairo".into(), title: "Track Three".into(), duration: "2:59".into() },
+        ];
+
+        Self{
+            state: TableState::default().with_selected(0),
+            songs: songs,
+        }
+    }
+
+    fn next_row(&mut self) {
+        let i = match self.state.selected() {
+            Some(i) => {
+                if i >= self.songs.len() - 1 {
+                    0
+                } else {
+                    i + 1
+                }
+            }
+            None => 0,
+        };
+        self.state.select(Some(i));
+    }
+
+    fn prev_row(&mut self) {
+        let i = match self.state.selected() {
+            Some(i) => {
+                if i == 0 {
+                    self.songs.len() - 1
+                } else {
+                    i - 1
+                }
+            }
+            None => 0,
+        };
+        self.state.select(Some(i));
+    }
+
+    pub fn run(mut self, terminal: &mut DefaultTerminal) -> Result<()> {
+        loop {
+            terminal.draw(|frame| self.render(frame))?;
+
+            if let Some(key) = event::read()?.as_key_press_event() {
+                match key.code {
+                    KeyCode::Char('q') => return Ok(()),
+                    KeyCode::Char('j') | KeyCode::Down => self.next_row(),
+                    KeyCode::Char('k') | KeyCode::Up => self.prev_row(),
+                    _ => {}
+                } 
+            }
+        }
+    }
+
+    fn render(&mut self, frame: &mut Frame) {
+        let layout = Layout::vertical([
+            Constraint::Percentage(80), 
+            Constraint::Percentage(20)]
+        );
+        let rects = frame.area().layout_vec(&layout);
+
+        self.render_table(frame, rects[0]);
+    }
+
+    fn render_table(&mut self, frame: &mut Frame, area: Rect) {
+        let row_style = Style::default().fg(Colors::TEXT);
+        let selected_row_style = Style::default()
+            .bg(Colors::BG_HOVER)
+            .fg(Colors::TEXT_HOVER);
+
+        let header = ["Artist", "Title", "Duration"]
+            .into_iter()
+            .map(Cell::from)
+            .collect::<Row>()
+            .bottom_margin(1)
+        ;
+
+        let block = Block::default()
+            .title_alignment(Alignment::Center)
+            .title("  Song List  |").bold()
+            .borders(Borders::ALL)
+            .border_type(BorderType::Rounded)
+            .border_style(Style::default().fg(Colors::BORDER))
+            .padding(Padding::uniform(1))
+        ;
+
+        let rows = self.songs.iter().map(|song| {
+            Row::new([
+                Cell::from(song.artist.as_str()),
+                Cell::from(song.title.as_str()),
+                Cell::from(song.duration.as_str())
+            ])
+            .style(row_style)
+        });
+
+
+        let t = Table::new(
+            rows, 
+            [           
+                Constraint::Percentage(30),
+                Constraint::Percentage(50),
+                Constraint::Percentage(20),
+            ],
+        )
+        .header(header)
+        .block(block)
+        .row_highlight_style(selected_row_style);
+
+        frame.render_stateful_widget(t, area, &mut self.state);
+    }
+}
