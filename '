@@ -2,9 +2,9 @@ use crate::tui::Colors;
 use std::io::Result;
 
 use crossterm::event::{self, KeyCode};
-use ratatui::layout::{Alignment, Constraint, Flex, Layout, Rect};
+use ratatui::layout::{Alignment, Constraint, Layout, Rect};
 use ratatui::style::{Color, Style, Stylize};
-use ratatui::widgets::{Block, BorderType, Borders, Cell, Gauge, Padding, Paragraph, Row, Table, TableState};
+use ratatui::widgets::{Block, BorderType, Borders, Cell, Gauge, Padding, Row, Table, TableState};
 use ratatui::{DefaultTerminal, Frame};
 
 
@@ -90,55 +90,35 @@ impl App {
     }
 
     fn render_player(&mut self, frame: &mut Frame, area: Rect) {
+        let layout = Layout::vertical([
+            Constraint::Percentage(50),
+            Constraint::Percentage(50)
+        ])
+        .margin(1)
+        .split(area);
+        
         let block = Block::default()
             .borders(Borders::ALL)
             .border_type(BorderType::Thick)
             .border_style(Style::default().fg(Colors::BORDER))
-            .padding(Padding::horizontal(1));
-        
-        frame.render_widget(&block, area);
+            .padding(Padding::uniform(1));
 
-        let inner = block.inner(area);
-
-        let [top, bottom] = Layout::vertical([
-            Constraint::Fill(1),
-            Constraint::Length(1)
-        ])
-        .areas(inner);
-
-        let [title, controls, duration] = Layout::horizontal([
-            Constraint::Fill(1),
-            Constraint::Fill(1),
-            Constraint::Fill(1),
-        ])
-        .flex(Flex::SpaceBetween)
-        .areas(top);
-
-        frame.render_widget(
-            Paragraph::new("MEGALOMANIA").alignment(Alignment::Left), 
-            title
-        );
-        frame.render_widget(
-            Paragraph::new("󰒮 󰏤 󰒭").alignment(Alignment::Center),
-            controls
-        );
-        frame.render_widget(
-            Paragraph::new("0:23 / 3:21").alignment(Alignment::Right),
-            duration
-        );
+        frame.render_widget(block, area);
 
         let progress_bar = Gauge::default()
-            .label("")
-            .ratio(0.2)
+            .block(Block::new())
             .gauge_style(
                 Style::default()
                     .fg(Color::White)
                     .bg(Color::Black)
-            );
+            )
+            .use_unicode(true)
+            .label("")
+            // .block(block)
+            .ratio(0.2);
 
-        frame.render_widget(progress_bar, bottom); 
+        frame.render_widget(progress_bar, layout[1]);
     }
-
 
     fn render_table(&mut self, frame: &mut Frame, area: Rect) {
         let row_style = Style::default().fg(Colors::TEXT);
