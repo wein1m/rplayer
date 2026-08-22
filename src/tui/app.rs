@@ -1,5 +1,6 @@
 use crate::tui::Colors;
 use std::io::Result;
+use std::time::{Duration, Instant};
 
 use crossterm::event::{self, KeyCode};
 use ratatui::layout::{Alignment, Constraint, Flex, Layout, Rect};
@@ -19,6 +20,8 @@ struct Song {
 pub struct App {
     state: TableState,
     songs: Vec<Song>,
+    progress: u64,
+    max_duration: u64 
 }
 
 impl App {
@@ -32,6 +35,8 @@ impl App {
         Self{
             state: TableState::default().with_selected(0),
             songs: songs,
+            progress: 0,
+            max_duration: 151
         }
     }
 
@@ -63,10 +68,34 @@ impl App {
         self.state.select(Some(i));
     }
 
+    fn on_tick(&mut self) {
+        self.progress += 1;
+
+        if self.progress >= self.max_duration {
+            self.progress = 0;
+        }
+    }
+
+    fn format_time(secs: u64) -> String {
+        let min = secs / 60;
+        let sec = secs % 60;
+
+        format!("{:02}:{:02}", min, sec)
+    }
+
     pub fn run(mut self, terminal: &mut DefaultTerminal) -> Result<()> {
+        let tick_rate = Duration::from_secs(1);
+        let mut last_tick = Instant::now();
+
         loop {
             terminal.draw(|frame| self.render(frame))?;
 
+            let timeout = tick_rate.saturating_sub(last_tick.elapsed());
+            if !event::poll(timeout)? {
+                self.on_tick();
+                last_tick = Instant::now();
+                continue
+            }
             if let Some(key) = event::read()?.as_key_press_event() {
                 match key.code {
                     KeyCode::Char('q') => return Ok(()),
@@ -122,14 +151,21 @@ impl App {
             Paragraph::new("󰒮 󰏤 󰒭").alignment(Alignment::Center),
             controls
         );
+
         frame.render_widget(
-            Paragraph::new("0:23 / 3:21").alignment(Alignment::Right),
-            duration
-        );
+            Paragraph::new(format!(
+            "{} / {}",
+            Self::format_time(self.progress),
+            Self::format_time(self.max_duration),
+        )
+        ).alignment(Alignment::Right)
+        ,duration);
+
+        let ratio = self.progress as f64 / self.max_duration as f64;
 
         let progress_bar = Gauge::default()
             .label("")
-            .ratio(0.2)
+            .ratio(ratio)
             .gauge_style(
                 Style::default()
                     .fg(Color::White)
