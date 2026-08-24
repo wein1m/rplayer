@@ -1529,6 +1529,7 @@ dependencies = [
  "crossterm",
  "ratatui",
  "rodio",
+ "walkdir",
 ]
 
 [[package]]

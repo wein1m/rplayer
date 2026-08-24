@@ -1,6 +1,7 @@
 mod app;
 mod audio;
 mod tui;
+mod scanner;
 
 use app::App;
 
