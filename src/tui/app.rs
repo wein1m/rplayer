@@ -25,6 +25,7 @@ pub struct TUI<'a> {
     current_song: Option<&'a TrackAudio>,
     songs: &'a [TrackAudio],
     progress: u64,
+    last_seek: Option<Instant>
 }
 
 impl<'a> TUI<'a> {
@@ -41,6 +42,7 @@ impl<'a> TUI<'a> {
             current_song: songs.first(),
             songs,
             progress: 0,
+            last_seek: Some(Instant::now())
         }
     }
 
@@ -76,11 +78,27 @@ impl<'a> TUI<'a> {
     }
 
     fn seek_forward(&mut self, sec: u64) {
-        self.progress += sec;
+        if self
+            .last_seek
+            .is_some_and(|last| last.elapsed() < Duration::from_millis(300))
+        {
+            return;
+        };
+
+        self.progress = (self.progress + sec).min(self.max_duration());
+        self.last_seek = Some(Instant::now());
     }
 
     fn seek_backward(&mut self, sec: u64) {
-        self.progress -= sec;
+        if self
+            .last_seek
+            .is_some_and(|last| last.elapsed() < Duration::from_millis(300))
+        {
+            return;
+        };
+
+        self.progress = self.progress.saturating_sub(sec);
+        self.last_seek = Some(Instant::now());
     }
 
     fn on_tick(&mut self) {
