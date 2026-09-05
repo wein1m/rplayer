@@ -1,12 +1,14 @@
 use std::path::PathBuf;
 
 use crate::audio::MusicPlayer;
-use crate::tui::App as TUI;
+use crate::scanner::scanner::TrackAudio;
+use crate::tui::TUI;
 use crate::scanner;
 
 pub struct App {
     music_player: MusicPlayer,
     music_path: PathBuf,
+    songs: Vec<TrackAudio>
 }
 
 impl App {
@@ -15,7 +17,8 @@ impl App {
 
         Ok(Self {
             music_player: MusicPlayer::new()?,
-            music_path
+            music_path,
+            songs: Vec::new()
         })
     }
 
@@ -31,9 +34,12 @@ impl App {
         Ok(())
     }
 
-    pub fn run(&self) -> Result<(), Box<dyn std::error::Error>> {
-        scanner::scan_music();
-        // ratatui::run(|term| TUI::new().run(term));
+    pub fn run(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+        self.songs = scanner::scan_music(&self.music_path)?;
+
+        ratatui::run(|term| 
+            TUI::new(&self.songs).run(term)
+        );
 
         // self.music_player.play_file("assets/example.mp3")?;
         // self.music_player.sleep_until_end();

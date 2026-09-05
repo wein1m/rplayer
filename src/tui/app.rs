@@ -1,3 +1,4 @@
+use crate::scanner::scanner::TrackAudio;
 use crate::tui::Colors;
 use std::io::Result;
 use std::time::{Duration, Instant};
@@ -9,36 +10,37 @@ use ratatui::widgets::{Block, BorderType, Borders, Cell, Gauge, Padding, Paragra
 use ratatui::{DefaultTerminal, Frame};
 
 
-#[derive(Debug, Default)]
-struct Song {
-    artist: String,
-    title: String,
-    duration: String
-}
+// #[derive(Debug, Default)]
+// pub struct Song {
+//     artist: String,
+//     title: String,
+//     duration: String
+// }
 
 #[derive(Debug, Default)]
-pub struct App {
+pub struct TUI<'a> {
     state: TableState,
-    songs: Vec<Song>,
+    songs: &'a [TrackAudio],
     progress: u64,
     max_duration: u64 
 }
 
-impl App {
-    pub fn new() -> Self {
-        let songs: Vec<Song> = vec![
-            Song { artist: "RADWIMPS".into(), title: "Track One".into(), duration: "3:12".into() },
-            Song { artist: "Dehumanizing Itatrain Worship".into(), title: "Track Two".into(), duration: "4:05".into() },
-            Song { artist: "Awairo".into(), title: "Track Three".into(), duration: "2:59".into() },
-        ];
+impl<'a> TUI<'a> {
+    pub fn new(songs: &'a [TrackAudio]) -> Self {
+        // let songs: Vec<TrackAudio> = vec![
+        //     TrackAudio { artist: "RADWIMPS".into(), title: "Track One".into(), duration: "3:12".into() },
+        //     TrackAudio { artist: "Dehumanizing Itatrain Worship".into(), title: "Track Two".into(), duration: "4:05".into() },
+        //     TrackAudio { artist: "Awairo".into(), title: "Track Three".into(), duration: "2:59".into() },
+        // ];
 
         Self{
             state: TableState::default().with_selected(0),
-            songs: songs,
+            songs,
             progress: 0,
             max_duration: 151
         }
     }
+
 
     fn next_row(&mut self) {
         let i = match self.state.selected() {
@@ -200,9 +202,9 @@ impl App {
 
         let rows = self.songs.iter().map(|song| {
             Row::new([
-                Cell::from(song.artist.as_str()),
-                Cell::from(song.title.as_str()),
-                Cell::from(song.duration.as_str())
+                Cell::from(song.track_artist.as_str()),
+                Cell::from(song.track_title.as_str()),
+                Cell::from(Self::format_time(song.track_duration))
             ])
             .style(row_style)
         });

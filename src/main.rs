@@ -38,7 +38,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     };
 
-    let app = App::new(music_path)?;
+    let mut app = App::new(music_path)?;
 
     app.run()?;
 

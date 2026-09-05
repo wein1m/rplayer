@@ -1,3 +1,4 @@
+use std::path::PathBuf;
 use std::{fs, path::Path};
 
 use lofty::{file::AudioFile, read_from_path};
@@ -11,12 +12,10 @@ pub struct TrackAudio {
     pub path: String,
     pub track_title: String,
     pub track_artist: String,
-    pub track_duration: f32,
+    pub track_duration: u64,
 }
 
-pub fn scan_music() -> Result<Vec<TrackAudio>, Box<dyn std::error::Error>> {
-    let path = "assets";
-
+pub fn scan_music(path: &PathBuf) -> Result<Vec<TrackAudio>, Box<dyn std::error::Error>> {
     let mut tracks = Vec::new();
 
     let walker = WalkDir::new(path).into_iter();
@@ -84,7 +83,7 @@ fn create_track(path: &Path) -> Option<TrackAudio> {
         }
     }
 
-    let track_duration = tagged_file.properties().duration().as_secs_f32();
+    let track_duration = tagged_file.properties().duration().as_secs();
 
     Some(TrackAudio {
         path: abs_path.to_string_lossy().to_string(),
