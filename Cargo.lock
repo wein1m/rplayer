@@ -602,6 +602,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "getopts"
+version = "0.2.24"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cfe4fbac503b8d1f88e6676011885f34b7174f46e59956bba534ba83abded4df"
+dependencies = [
+ "unicode-width",
+]
+
+[[package]]
 name = "getrandom"
 version = "0.3.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1615,6 +1624,7 @@ name = "rplayer"
 version = "0.1.0"
 dependencies = [
  "crossterm",
+ "getopts",
  "lofty",
  "ratatui",
  "rodio",
