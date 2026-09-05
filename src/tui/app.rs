@@ -1,6 +1,7 @@
 use crate::scanner::scanner::TrackAudio;
 use crate::tui::Colors;
 use std::io::Result;
+use std::path::PathBuf;
 use std::time::{Duration, Instant};
 
 use crossterm::event::{self, KeyCode};
@@ -17,12 +18,13 @@ use ratatui::{DefaultTerminal, Frame};
 //     duration: String
 // }
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct TUI<'a> {
     state: TableState,
+    selected_song: Option<&'a TrackAudio>,
+    current_song: Option<&'a TrackAudio>,
     songs: &'a [TrackAudio],
     progress: u64,
-    max_duration: u64 
 }
 
 impl<'a> TUI<'a> {
@@ -35,9 +37,10 @@ impl<'a> TUI<'a> {
 
         Self{
             state: TableState::default().with_selected(0),
+            selected_song: songs.first(),
+            current_song: songs.first(),
             songs,
             progress: 0,
-            max_duration: 151
         }
     }
 
@@ -54,6 +57,7 @@ impl<'a> TUI<'a> {
             None => 0,
         };
         self.state.select(Some(i));
+        self.selected_song = self.songs.get(i);
     }
 
     fn prev_row(&mut self) {
@@ -68,14 +72,21 @@ impl<'a> TUI<'a> {
             None => 0,
         };
         self.state.select(Some(i));
+        self.selected_song = self.songs.get(i);
     }
 
     fn on_tick(&mut self) {
         self.progress += 1;
 
-        if self.progress >= self.max_duration {
+        if self.progress >= self.max_duration() {
             self.progress = 0;
         }
+    }
+
+    fn max_duration(&self) -> u64 {
+        self.current_song
+            .map(|song| song.track_duration)
+            .unwrap_or(0)
     }
 
     fn format_time(secs: u64) -> String {
@@ -145,8 +156,12 @@ impl<'a> TUI<'a> {
         .flex(Flex::SpaceBetween)
         .areas(top);
 
+        let track_title = self.current_song
+            .map(|song| song.track_title.as_str())
+            .unwrap_or("");
+
         frame.render_widget(
-            Paragraph::new("MEGALOMANIA").alignment(Alignment::Left), 
+            Paragraph::new(track_title).alignment(Alignment::Left), 
             title
         );
         frame.render_widget(
@@ -158,12 +173,12 @@ impl<'a> TUI<'a> {
             Paragraph::new(format!(
             "{} / {}",
             Self::format_time(self.progress),
-            Self::format_time(self.max_duration),
+            Self::format_time(self.max_duration()),
         )
         ).alignment(Alignment::Right)
         ,duration);
 
-        let ratio = self.progress as f64 / self.max_duration as f64;
+        let ratio = self.progress as f64 / self.max_duration() as f64;
 
         let progress_bar = Gauge::default()
             .label("")
