@@ -38,8 +38,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     };
 
-    println!("{}", music_path.display());
-    let app = App::new()?;
+    let app = App::new(music_path)?;
 
     app.run()?;
 
