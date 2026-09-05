@@ -75,6 +75,14 @@ impl<'a> TUI<'a> {
         self.selected_song = self.songs.get(i);
     }
 
+    fn seek_forward(&mut self, sec: u64) {
+        self.progress += sec;
+    }
+
+    fn seek_backward(&mut self, sec: u64) {
+        self.progress -= sec;
+    }
+
     fn on_tick(&mut self) {
         self.progress += 1;
 
@@ -114,6 +122,8 @@ impl<'a> TUI<'a> {
                     KeyCode::Char('q') => return Ok(()),
                     KeyCode::Char('j') | KeyCode::Down => self.next_row(),
                     KeyCode::Char('k') | KeyCode::Up => self.prev_row(),
+                    KeyCode::Char('l') => self.seek_forward(10),
+                    KeyCode::Char('h') => self.seek_backward(10),
                     _ => {}
                 } 
             }
