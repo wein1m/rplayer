@@ -78,6 +78,8 @@ impl<'a> TUI<'a> {
         };
 
         self.progress = (self.progress + sec).min(self.max_duration());
+        self.app.music_player.seek(self.progress);
+
         self.last_seek = Some(Instant::now());
     }
 
@@ -90,6 +92,8 @@ impl<'a> TUI<'a> {
         };
 
         self.progress = self.progress.saturating_sub(sec);
+        self.app.music_player.seek(self.progress);
+
         self.last_seek = Some(Instant::now());
     }
 

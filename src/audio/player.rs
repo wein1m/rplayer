@@ -1,4 +1,4 @@
-use std::fs::File;
+use std::{fs::File, time::Duration};
 use rodio::{DeviceSinkBuilder, Decoder, Player};
 
 pub struct MusicPlayer {
@@ -38,5 +38,14 @@ impl MusicPlayer {
 
     pub fn is_paused(&self) -> bool {
         self.player.is_paused()
+    }
+
+    pub fn seek(&self, sec: u64) {
+        let time = Duration::from_secs(sec);
+
+        match self.player.try_seek(time) {
+            Ok(()) => {},
+            Err(e) => eprintln!("Failed to seek: {e}")
+        }
     }
 }
