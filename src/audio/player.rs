@@ -21,20 +21,22 @@ impl MusicPlayer {
         let file = File::open(path)?;
         let source = Decoder::try_from(file)?;
 
+        self.player.pause();
         self.player.append(source);
+        self.player.play();
 
         Ok(())
     }
 
     pub fn pause(&self) {
-        self.player.pause();
+        if self.player.is_paused() {
+            self.player.play();
+        } else {
+            self.player.pause();
+        }
     }
 
-    pub fn resume(&self) {
-        self.player.play();
-    }
-
-    pub fn sleep_until_end(&self) {
-        self.player.sleep_until_end();
+    pub fn is_paused(&self) -> bool {
+        self.player.is_paused()
     }
 }

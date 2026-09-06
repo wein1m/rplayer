@@ -6,7 +6,7 @@ use crate::tui::TUI;
 use crate::scanner;
 
 pub struct App {
-    music_player: MusicPlayer,
+    pub music_player: MusicPlayer,
     music_path: PathBuf,
     pub songs: Vec<TrackAudio>,
     current_song: Option<usize>,
@@ -43,10 +43,10 @@ impl App {
 
     pub fn run(&mut self) -> Result<(), Box<dyn std::error::Error>> {
         self.songs = scanner::scan_music(&self.music_path)?;
+
         let song_path = self.get_current_song()
             .map(|song| &song.path)
             .unwrap();
-
 
         self.music_player.play_file(song_path.as_str())?;
 

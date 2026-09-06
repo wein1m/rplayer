@@ -21,7 +21,7 @@ pub struct TUI<'a> {
     state: TableState,
     app: &'a mut App,
     progress: u64,
-    last_seek: Option<Instant>
+    last_seek: Option<Instant>,
 }
 
 impl<'a> TUI<'a> {
@@ -36,7 +36,7 @@ impl<'a> TUI<'a> {
             state: TableState::default().with_selected(0),
             app,
             progress: 0,
-            last_seek: Some(Instant::now())
+            last_seek: Some(Instant::now()),
         }
     }
 
@@ -94,7 +94,9 @@ impl<'a> TUI<'a> {
     }
 
     fn on_tick(&mut self) {
-        self.progress += 1;
+        if !self.app.music_player.is_paused() {
+            self.progress += 1;
+        }
 
         if self.progress >= self.max_duration() {
             self.progress = 0;
@@ -132,8 +134,11 @@ impl<'a> TUI<'a> {
                     KeyCode::Char('q') => return Ok(()),
                     KeyCode::Char('j') | KeyCode::Down => self.next_row(),
                     KeyCode::Char('k') | KeyCode::Up => self.prev_row(),
+
                     KeyCode::Char('l') => self.seek_forward(10),
                     KeyCode::Char('h') => self.seek_backward(10),
+
+                    KeyCode::Char(' ') | KeyCode::Pause => self.app.music_player.pause(),
                     _ => {}
                 } 
             }
@@ -180,12 +185,18 @@ impl<'a> TUI<'a> {
             .map(|song| song.track_title.as_str())
             .unwrap_or("");
 
+        let controls_icon = if self.app.music_player.is_paused() {
+            "󰒮 󰐊 󰒭"
+        } else {
+            "󰒮 󰏤 󰒭"
+        };
+
         frame.render_widget(
             Paragraph::new(track_title).alignment(Alignment::Left), 
             title
         );
         frame.render_widget(
-            Paragraph::new("󰒮 󰏤 󰒭").alignment(Alignment::Center),
+            Paragraph::new(controls_icon).alignment(Alignment::Center),
             controls
         );
 
