@@ -8,7 +8,8 @@ use crate::scanner;
 pub struct App {
     music_player: MusicPlayer,
     music_path: PathBuf,
-    songs: Vec<TrackAudio>
+    pub songs: Vec<TrackAudio>,
+    current_song: Option<usize>,
 }
 
 impl App {
@@ -18,7 +19,8 @@ impl App {
         Ok(Self {
             music_player: MusicPlayer::new()?,
             music_path,
-            songs: Vec::new()
+            songs: Vec::new(),
+            current_song: Some(0)
         })
     }
 
@@ -34,15 +36,24 @@ impl App {
         Ok(())
     }
 
+    pub fn get_current_song(&self) -> Option<&TrackAudio>{
+        self.current_song
+            .and_then(|i| self.songs.get(i))
+    }
+
     pub fn run(&mut self) -> Result<(), Box<dyn std::error::Error>> {
         self.songs = scanner::scan_music(&self.music_path)?;
+        let song_path = self.get_current_song()
+            .map(|song| &song.path)
+            .unwrap();
+
+
+        self.music_player.play_file(song_path.as_str())?;
 
         ratatui::run(|term| 
-            TUI::new(&self.songs).run(term)
-        );
+            TUI::new(self).run(term)
+        )?;
 
-        // self.music_player.play_file("assets/example.mp3")?;
-        // self.music_player.sleep_until_end();
 
         Ok(())
     }

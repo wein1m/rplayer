@@ -1,7 +1,6 @@
-use crate::scanner::scanner::TrackAudio;
+use crate::app::App;
 use crate::tui::Colors;
 use std::io::Result;
-use std::path::PathBuf;
 use std::time::{Duration, Instant};
 
 use crossterm::event::{self, KeyCode};
@@ -18,18 +17,15 @@ use ratatui::{DefaultTerminal, Frame};
 //     duration: String
 // }
 
-#[derive(Debug)]
 pub struct TUI<'a> {
     state: TableState,
-    selected_song: Option<&'a TrackAudio>,
-    current_song: Option<&'a TrackAudio>,
-    songs: &'a [TrackAudio],
+    app: &'a mut App,
     progress: u64,
     last_seek: Option<Instant>
 }
 
 impl<'a> TUI<'a> {
-    pub fn new(songs: &'a [TrackAudio]) -> Self {
+    pub fn new(app: &'a mut App) -> Self {
         // let songs: Vec<TrackAudio> = vec![
         //     TrackAudio { artist: "RADWIMPS".into(), title: "Track One".into(), duration: "3:12".into() },
         //     TrackAudio { artist: "Dehumanizing Itatrain Worship".into(), title: "Track Two".into(), duration: "4:05".into() },
@@ -38,9 +34,7 @@ impl<'a> TUI<'a> {
 
         Self{
             state: TableState::default().with_selected(0),
-            selected_song: songs.first(),
-            current_song: songs.first(),
-            songs,
+            app,
             progress: 0,
             last_seek: Some(Instant::now())
         }
@@ -50,7 +44,7 @@ impl<'a> TUI<'a> {
     fn next_row(&mut self) {
         let i = match self.state.selected() {
             Some(i) => {
-                if i >= self.songs.len() - 1 {
+                if i >= self.app.songs.len() - 1 {
                     0
                 } else {
                     i + 1
@@ -59,14 +53,13 @@ impl<'a> TUI<'a> {
             None => 0,
         };
         self.state.select(Some(i));
-        self.selected_song = self.songs.get(i);
     }
 
     fn prev_row(&mut self) {
         let i = match self.state.selected() {
             Some(i) => {
                 if i == 0 {
-                    self.songs.len() - 1
+                    self.app.songs.len() - 1
                 } else {
                     i - 1
                 }
@@ -74,7 +67,6 @@ impl<'a> TUI<'a> {
             None => 0,
         };
         self.state.select(Some(i));
-        self.selected_song = self.songs.get(i);
     }
 
     fn seek_forward(&mut self, sec: u64) {
@@ -110,7 +102,7 @@ impl<'a> TUI<'a> {
     }
 
     fn max_duration(&self) -> u64 {
-        self.current_song
+        self.app.get_current_song()
             .map(|song| song.track_duration)
             .unwrap_or(0)
     }
@@ -184,7 +176,7 @@ impl<'a> TUI<'a> {
         .flex(Flex::SpaceBetween)
         .areas(top);
 
-        let track_title = self.current_song
+        let track_title = self.app.get_current_song()
             .map(|song| song.track_title.as_str())
             .unwrap_or("");
 
@@ -243,7 +235,7 @@ impl<'a> TUI<'a> {
             .padding(Padding::uniform(1))
         ;
 
-        let rows = self.songs.iter().map(|song| {
+        let rows = self.app.songs.iter().map(|song| {
             Row::new([
                 Cell::from(song.track_artist.as_str()),
                 Cell::from(song.track_title.as_str()),
