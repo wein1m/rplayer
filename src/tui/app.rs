@@ -97,6 +97,11 @@ impl<'a> TUI<'a> {
         self.last_seek = Some(Instant::now());
     }
 
+    fn handle_next(&mut self) {
+        self.app.next_song().unwrap();
+        self.progress = 0;
+    }
+
     fn on_tick(&mut self) {
         if !self.app.music_player.is_paused() {
             self.progress += 1;
@@ -143,6 +148,8 @@ impl<'a> TUI<'a> {
                     KeyCode::Char('h') => self.seek_backward(10),
 
                     KeyCode::Char(' ') | KeyCode::Pause => self.app.music_player.pause(),
+
+                    KeyCode::Char('L') => self.handle_next(),
                     _ => {}
                 } 
             }

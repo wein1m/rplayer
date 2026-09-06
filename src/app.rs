@@ -41,7 +41,21 @@ impl App {
             .and_then(|i| self.songs.get(i))
     }
 
-    pub fn run(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+    fn select_song(&mut self, id: usize) {
+        self.current_song = Some(id)
+    }
+
+    pub fn next_song(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+        self.select_song(
+            self.current_song.unwrap() + 1
+        );
+
+        self.update_song()?;
+
+        Ok(())
+    }
+
+    fn update_song(&mut self) -> Result<(), Box<dyn std::error::Error>> {
         self.songs = scanner::scan_music(&self.music_path)?;
 
         let song_path = self.get_current_song()
@@ -49,6 +63,12 @@ impl App {
             .unwrap();
 
         self.music_player.play_file(song_path.as_str())?;
+
+        Ok(())
+    }
+
+    pub fn run(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+        self.update_song()?;
 
         ratatui::run(|term| 
             TUI::new(self).run(term)

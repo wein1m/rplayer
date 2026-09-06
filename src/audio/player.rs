@@ -21,7 +21,7 @@ impl MusicPlayer {
         let file = File::open(path)?;
         let source = Decoder::try_from(file)?;
 
-        self.player.pause();
+        self.player.stop();
         self.player.append(source);
         self.player.play();
 
