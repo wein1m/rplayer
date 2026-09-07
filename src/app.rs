@@ -55,6 +55,21 @@ impl App {
         Ok(())
     }
 
+    pub fn prev_song(&mut self, progress: &mut u64) -> Result<(), Box<dyn std::error::Error>> {
+        if self.current_song.unwrap() == 0 {
+            *progress = 0;
+            self.music_player.seek(0);
+            return Ok(())
+        }
+
+        self.select_song(
+            self.current_song.unwrap() - 1);
+
+        self.update_song()?;
+
+        Ok(())
+    }
+
     fn update_song(&mut self) -> Result<(), Box<dyn std::error::Error>> {
         self.songs = scanner::scan_music(&self.music_path)?;
 

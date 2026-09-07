@@ -150,6 +150,7 @@ impl<'a> TUI<'a> {
                     KeyCode::Char(' ') | KeyCode::Pause => self.app.music_player.pause(),
 
                     KeyCode::Char('L') => self.handle_next(),
+                    KeyCode::Char('H') => self.app.prev_song(&mut self.progress).unwrap(),
                     _ => {}
                 } 
             }
