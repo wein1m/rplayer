@@ -46,9 +46,11 @@ impl App {
     }
 
     pub fn next_song(&mut self) -> Result<(), Box<dyn std::error::Error>> {
-        self.select_song(
-            self.current_song.unwrap() + 1
-        );
+        if self.current_song.unwrap() == self.songs.len() - 1 {
+            self.select_song(0)
+        } else {
+            self.select_song(self.current_song.unwrap() + 1)
+        }
 
         self.update_song()?;
 

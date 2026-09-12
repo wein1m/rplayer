@@ -53,13 +53,16 @@ impl<'a> TUI<'a> {
             None => 0,
         };
         self.state.select(Some(i));
+
+        self.app.next_song().unwrap();
+        self.progress = 0;
     }
 
     fn prev_row(&mut self) {
         let i = match self.state.selected() {
             Some(i) => {
                 if i == 0 {
-                    self.app.songs.len() - 1
+                    i
                 } else {
                     i - 1
                 }
@@ -67,6 +70,9 @@ impl<'a> TUI<'a> {
             None => 0,
         };
         self.state.select(Some(i));
+
+        self.app.prev_song(&mut self.progress).unwrap();
+        self.progress = 0;
     }
 
     fn seek_forward(&mut self, sec: u64) {
@@ -95,11 +101,6 @@ impl<'a> TUI<'a> {
         self.app.music_player.seek(self.progress);
 
         self.last_seek = Some(Instant::now());
-    }
-
-    fn handle_next(&mut self) {
-        self.app.next_song().unwrap();
-        self.progress = 0;
     }
 
     fn on_tick(&mut self) {
@@ -141,16 +142,14 @@ impl<'a> TUI<'a> {
             if let Some(key) = event::read()?.as_key_press_event() {
                 match key.code {
                     KeyCode::Char('q') => return Ok(()),
-                    KeyCode::Char('j') | KeyCode::Down => self.next_row(),
-                    KeyCode::Char('k') | KeyCode::Up => self.prev_row(),
 
                     KeyCode::Char('l') => self.seek_forward(10),
                     KeyCode::Char('h') => self.seek_backward(10),
 
                     KeyCode::Char(' ') | KeyCode::Pause => self.app.music_player.pause(),
 
-                    KeyCode::Char('L') => self.handle_next(),
-                    KeyCode::Char('H') => self.app.prev_song(&mut self.progress).unwrap(),
+                    KeyCode::Char('L') => self.next_row(),
+                    KeyCode::Char('H') => self.prev_row(),
                     _ => {}
                 } 
             }
