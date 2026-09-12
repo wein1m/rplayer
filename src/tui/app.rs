@@ -109,7 +109,7 @@ impl<'a> TUI<'a> {
         }
 
         if self.progress >= self.max_duration() {
-            self.progress = 0;
+            self.next_row();
         }
     }
 
