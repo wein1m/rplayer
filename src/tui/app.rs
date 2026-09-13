@@ -133,7 +133,11 @@ impl<'a> TUI<'a> {
     }
 
     fn on_tick(&mut self) {
-        self.app.handle_mpris_commands(&mut self.progress);
+        let _ = self.app.handle_mpris_commands(&mut self.progress);
+
+        if let Some(id) = self.app.current_song_idx() {
+            self.state.select(Some(id));
+        }
 
         if !self.app.music_player.is_paused() {
             self.progress += 1;

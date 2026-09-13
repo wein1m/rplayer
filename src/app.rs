@@ -44,6 +44,10 @@ impl App {
             .and_then(|i| self.songs.get(i))
     }
 
+    pub fn current_song_idx(&self) -> Option<usize> {
+        self.current_song
+    }
+
     fn select_song(&mut self, id: usize) {
         self.current_song = Some(id)
     }
