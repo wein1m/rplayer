@@ -111,7 +111,7 @@ impl App {
                     }
                 }
                 MprisCommand::Pause => {
-                if !self.music_player.is_paused() {
+                    if !self.music_player.is_paused() {
                         self.toggle_pause();
                     }
                 }

@@ -60,7 +60,7 @@ impl<'a> TUI<'a> {
                     KeyCode::Char('l') => self.seek_forward(10),
                     KeyCode::Char('h') => self.seek_backward(10),
 
-                    KeyCode::Char(' ') | KeyCode::Pause => self.app.music_player.pause(),
+                    KeyCode::Char(' ') | KeyCode::Pause => self.app.toggle_pause(),
 
                     KeyCode::Char('L') => self.next_row(),
                     KeyCode::Char('H') => self.prev_row(),
