@@ -21,6 +21,7 @@ enum MprisMsg {
         title: String,
         artist: String,
         duration: u64,
+        art_url: String
     },
     PlaybackStatus(PlaybackStatus),
 }
@@ -86,11 +87,16 @@ impl Mpris {
                                 title,
                                 artist,
                                 duration,
+                                art_url
                             } => {
-                                let builder = Metadata::builder()
+                                let mut builder = Metadata::builder()
                                     .title(&title)
                                     .artist([&artist])
                                     .length(Time::from_secs(duration as i64));
+
+                                if !art_url.is_empty() {
+                                    builder = builder.art_url(&art_url);
+                                }
 
                                 let metadata = builder.build();
                                 let _ = player.set_metadata(metadata).await;
@@ -116,6 +122,7 @@ impl Mpris {
             title: song.track_title.clone(),
             artist: song.track_artist.clone(),
             duration: song.track_duration,
+            art_url: song.art_url.clone().unwrap_or_default(),
         });
     }
 
@@ -128,7 +135,7 @@ impl Mpris {
             status = PlaybackStatus::Playing
         }
 
-        self.tx.send_blocking(MprisMsg::PlaybackStatus(status));
+        let _ = self.tx.send_blocking(MprisMsg::PlaybackStatus(status));
    }
 
     pub fn poll_command(&self) -> Option<MprisCommand> {

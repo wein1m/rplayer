@@ -1,6 +1,8 @@
+use std::hash::{DefaultHasher, Hash, Hasher};
 use std::path::PathBuf;
 use std::{fs, path::Path};
 
+use lofty::picture::MimeType;
 use lofty::{file::AudioFile, read_from_path};
 use lofty::file::TaggedFileExt;
 use lofty::tag::Accessor;
@@ -10,9 +12,9 @@ use walkdir::{WalkDir, DirEntry};
 #[derive(Debug)]
 pub struct TrackAudio {
     pub path: String,
-    pub track_title: String,
-    pub track_artist: String,
+    pub track_title: String, pub track_artist: String,
     pub track_duration: u64,
+    pub art_url: Option<String>
 }
 
 pub fn scan_music(path: &PathBuf) -> Result<Vec<TrackAudio>, Box<dyn std::error::Error>> {
@@ -57,6 +59,7 @@ fn create_track(path: &Path) -> Option<TrackAudio> {
     let abs_path = fs::canonicalize(path).ok()?;
     let mut track_title = String::new();
     let mut track_artist = String::new();
+    let mut art_url = None;
 
     let tagged_file = match read_from_path(path) {
         Ok(file) => file,
@@ -81,6 +84,28 @@ fn create_track(path: &Path) -> Option<TrackAudio> {
                 track_artist = String::from("Unknown Artist");
             }
         }
+        if let Some(img) = tag.pictures().first() {
+            let mime = img.mime_type();
+            let ext = match mime {
+                Some(MimeType::Jpeg) => "jpg",
+                Some(MimeType::Png) => "png",
+                  _ => "jpg"
+            };
+
+            let temp_dir = std::env::temp_dir().join("rplayer_covers");
+            if fs::create_dir_all(&temp_dir).is_ok() {
+                let mut hasher = DefaultHasher::new();
+                abs_path.hash(&mut hasher);
+                let hash = hasher.finish();
+
+                let filename = format!("{hash}.{ext}");
+                let cover_path = temp_dir.join(filename);
+
+                if fs::write(&cover_path, img.data()).is_ok() {
+                    art_url = Some(format!("file://{}", cover_path.display()))
+                }
+            }
+        }
     }
 
     let track_duration = tagged_file.properties().duration().as_secs();
@@ -89,6 +114,7 @@ fn create_track(path: &Path) -> Option<TrackAudio> {
         path: abs_path.to_string_lossy().to_string(),
         track_title,
         track_artist,
-        track_duration
+        track_duration,
+        art_url
     })
 }
