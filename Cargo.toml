@@ -4,9 +4,12 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+async-channel = "2.3.1"
 crossterm = "0.29.0"
+futures-util = "0.3.33"
 getopts = "0.2.24"
 lofty = "0.25.1"
+mpris-server = "0.10.0"
 ratatui = "0.30.2"
 rodio = "0.22.2"
 walkdir = "2.5.0"

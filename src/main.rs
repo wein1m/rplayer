@@ -2,6 +2,7 @@ mod app;
 mod audio;
 mod tui;
 mod scanner;
+mod mpris;
 
 use std::{env, path::PathBuf, process};
 

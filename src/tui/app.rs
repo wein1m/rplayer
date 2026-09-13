@@ -52,6 +52,7 @@ impl<'a> TUI<'a> {
                 last_tick = Instant::now();
                 continue
             }
+
             if let Some(key) = event::read()?.as_key_press_event() {
                 match key.code {
                     KeyCode::Char('q') => return Ok(()),
@@ -132,6 +133,8 @@ impl<'a> TUI<'a> {
     }
 
     fn on_tick(&mut self) {
+        self.app.handle_mpris_commands(&mut self.progress);
+
         if !self.app.music_player.is_paused() {
             self.progress += 1;
         }

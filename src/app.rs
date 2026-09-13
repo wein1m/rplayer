@@ -4,12 +4,14 @@ use crate::audio::MusicPlayer;
 use crate::scanner::scanner::TrackAudio;
 use crate::tui::TUI;
 use crate::scanner;
+use crate::mpris::{Mpris, MprisCommand};
 
 pub struct App {
     pub music_player: MusicPlayer,
     music_path: PathBuf,
     pub songs: Vec<TrackAudio>,
     current_song: Option<usize>,
+    pub mpris: Mpris
 }
 
 impl App {
@@ -20,7 +22,8 @@ impl App {
             music_player: MusicPlayer::new()?,
             music_path,
             songs: Vec::new(),
-            current_song: Some(0)
+            current_song: Some(0),
+            mpris: Mpris::new()?,
         })
     }
 
@@ -75,12 +78,45 @@ impl App {
     fn update_song(&mut self) -> Result<(), Box<dyn std::error::Error>> {
         self.songs = scanner::scan_music(&self.music_path)?;
 
-        let song_path = self.get_current_song()
-            .map(|song| &song.path)
-            .unwrap();
+        if let Some(song) = self.get_current_song() {
+            self.music_player.play_file(song.path.as_str())?;
+            self.mpris.update_song(&song);
+            self.mpris.set_playback_status(false);
+        }
 
-        self.music_player.play_file(song_path.as_str())?;
+        Ok(())
+    }
 
+    pub fn toggle_pause(&mut self) {
+        self.music_player.pause();
+        self.mpris.set_playback_status(self.music_player.is_paused());
+    }
+
+    pub fn handle_mpris_commands(&mut self, progress: &mut u64) -> Result<(), Box<dyn std::error::Error>> {
+        while let Some(cmd) = self.mpris.poll_command() {
+            match cmd {
+                MprisCommand::Next => {
+                    self.next_song()?;
+                    *progress =0;
+                }
+                MprisCommand::Previous => {
+                    self.prev_song(progress)?;
+                }
+                MprisCommand::PlayPause => {
+                    self.toggle_pause();
+                }
+                MprisCommand::Play => {
+                    if self.music_player.is_paused() {
+                        self.toggle_pause();
+                    }
+                }
+                MprisCommand::Pause => {
+                if !self.music_player.is_paused() {
+                        self.toggle_pause();
+                    }
+                }
+            }
+        }
         Ok(())
     }
 
