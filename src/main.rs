@@ -25,6 +25,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     };
 
+    if args.len() == 1 {
+        print_usage(prog, &opts);
+        process::exit(0);
+    }
+
     if matches.opt_present("h") {
         print_usage(prog, &opts);
         process::exit(0);
@@ -33,9 +38,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let music_path = match matches.opt_str("p") {
         Some(x) => PathBuf::from(x),
         None => {
-            eprintln!("{prog}: Error: Music path is required.\n");
-            print_usage(prog, &opts);
-            process::exit(1);
+            if let Some(path) = matches.free.first() {
+                PathBuf::from(path)
+            } else {
+                eprintln!("{prog}: Error: Music path is required.\n");
+                print_usage(prog, &opts);
+                process::exit(1);
+            }
         }
     };
 
