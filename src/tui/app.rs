@@ -1,12 +1,11 @@
 use crate::app::App;
-use crate::tui::ui;
+use crate::tui::{Keybindings, ui};
 use std::io::Result;
 use std::time::{Duration, Instant};
 
 use crossterm::event::{self, KeyCode};
 use ratatui::widgets::TableState;
 use ratatui::DefaultTerminal;
-
 
 // #[derive(Debug, Default)]
 // pub struct Song {
@@ -57,13 +56,13 @@ impl<'a> TUI<'a> {
                 match key.code {
                     KeyCode::Char('q') => return Ok(()),
 
-                    KeyCode::Char('l') => self.seek_forward(10),
-                    KeyCode::Char('h') => self.seek_backward(10),
+                    KeyCode::Char(Keybindings::SEEK_FORWARD) => self.seek_forward(10),
+                    KeyCode::Char(Keybindings::SEEK_BACKWARD) => self.seek_backward(10),
 
-                    KeyCode::Char(' ') | KeyCode::Pause => self.app.toggle_pause(),
+                    KeyCode::Char(Keybindings::PAUSE) | KeyCode::Pause => self.app.toggle_pause(),
 
-                    KeyCode::Char('L') => self.next_row(),
-                    KeyCode::Char('H') => self.prev_row(),
+                    KeyCode::Char(Keybindings::NEXT_TRACK) => self.next_row(),
+                    KeyCode::Char(Keybindings::PREV_TRACK) => self.prev_row(),
                     _ => {}
                 } 
             }
