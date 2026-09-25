@@ -4,7 +4,7 @@ mod tui;
 mod scanner;
 mod mpris;
 
-use std::{env, path::PathBuf, process};
+use std::{env, fs, path::PathBuf, process};
 
 use app::App;
 use getopts::Options;
@@ -36,10 +36,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     let music_path = match matches.opt_str("p") {
-        Some(x) => PathBuf::from(x),
+        Some(x) => {
+            get_path(x.as_str())
+        },
         None => {
             if let Some(path) = matches.free.first() {
-                PathBuf::from(path)
+                get_path(path)
             } else {
                 eprintln!("{prog}: Error: Music path is required.\n");
                 print_usage(prog, &opts);
@@ -58,4 +60,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 fn print_usage(program: &str, opts: &Options) {
     let brief = format!("Usage: {program} [options]");
     print!("{}", opts.usage(&brief));
+}
+
+fn get_path(path: &str) -> PathBuf {
+    let full_path = match fs::canonicalize(&path) {
+        Ok(p) => p,
+        Err(e) => {
+            eprintln!("Failed to get full path. {e}");
+            process::exit(1);
+        }
+    };
+
+    PathBuf::from(full_path)
 }
