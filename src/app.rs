@@ -80,8 +80,6 @@ impl App {
     }
 
     fn update_song(&mut self) -> Result<(), Box<dyn std::error::Error>> {
-        self.songs = scanner::scan_music(&self.music_path)?;
-
         if let Some(song) = self.get_current_song() {
             self.music_player.play_file(song.path.as_str())?;
             self.mpris.update_song(&song);
@@ -125,6 +123,7 @@ impl App {
     }
 
     pub fn run(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+        self.songs = scanner::scan_music(&self.music_path)?;
         self.update_song()?;
 
         ratatui::run(|term| 
