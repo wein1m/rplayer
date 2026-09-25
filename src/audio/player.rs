@@ -8,7 +8,8 @@ pub struct MusicPlayer {
 
 impl MusicPlayer {
     pub fn new() -> Result<Self, Box<dyn std::error::Error>> {
-        let stream = DeviceSinkBuilder::open_default_sink()?;
+        let mut stream = DeviceSinkBuilder::open_default_sink()?;
+        stream.log_on_drop(false);
         let player = Player::connect_new(&stream.mixer());
 
         Ok(Self {
