@@ -7,8 +7,6 @@ use lofty::{file::AudioFile, read_from_path};
 use lofty::file::TaggedFileExt;
 use lofty::tag::Accessor;
 
-use walkdir::{WalkDir, DirEntry};
-
 #[derive(Debug)]
 pub struct TrackAudio {
     pub path: String,
@@ -20,14 +18,17 @@ pub struct TrackAudio {
 pub fn scan_music(path: &PathBuf) -> Result<Vec<TrackAudio>, Box<dyn std::error::Error>> {
     let mut tracks = Vec::new();
 
-    let walker = WalkDir::new(path).into_iter();
-    for entry in walker.filter_entry(|e| !is_hidden(e)) {
+    for entry in fs::read_dir(path)? {
         match entry {
             Ok(e) => {
+                if is_hidden(&e) {
+                    continue;
+                }
+
                 let path = e.path();
 
-                if path.is_file() && is_music(path) {
-                    if let Some(track) = create_track(path) {
+                if path.is_file() && is_music(&path) {
+                    if let Some(track) = create_track(&path) {
                         tracks.push(track);
                     }
                 };
@@ -39,7 +40,7 @@ pub fn scan_music(path: &PathBuf) -> Result<Vec<TrackAudio>, Box<dyn std::error:
     Ok(tracks)
 }
 
-fn is_hidden(entry: &DirEntry) -> bool {
+fn is_hidden(entry: &fs::DirEntry) -> bool {
     entry.file_name()
         .to_str()
         .map(|s| s.starts_with("."))
