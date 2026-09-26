@@ -1950,7 +1950,6 @@ dependencies = [
  "rand 0.10.3",
  "ratatui",
  "rodio",
- "walkdir",
 ]
 
 [[package]]
