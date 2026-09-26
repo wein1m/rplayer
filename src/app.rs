@@ -1,4 +1,5 @@
 use std::path::PathBuf;
+use rand::seq::SliceRandom;
 
 use crate::audio::MusicPlayer;
 use crate::scanner::scanner::TrackAudio;
@@ -11,11 +12,12 @@ pub struct App {
     music_path: PathBuf,
     pub songs: Vec<TrackAudio>,
     current_song: Option<usize>,
-    pub mpris: Mpris
+    pub mpris: Mpris,
+    shuffle: bool,
 }
 
 impl App {
-    pub fn new(music_path: PathBuf) -> Result<Self, Box<dyn std::error::Error>> {
+    pub fn new(music_path: PathBuf, shuffle: bool) -> Result<Self, Box<dyn std::error::Error>> {
         Self::validate_path(&music_path)?;
 
         Ok(Self {
@@ -24,6 +26,7 @@ impl App {
             songs: Vec::new(),
             current_song: Some(0),
             mpris: Mpris::new()?,
+            shuffle,
         })
     }
 
@@ -124,6 +127,11 @@ impl App {
 
     pub fn run(&mut self) -> Result<(), Box<dyn std::error::Error>> {
         self.songs = scanner::scan_music(&self.music_path)?;
+
+        if self.shuffle {
+            self.songs.shuffle(&mut rand::rng())
+        }
+
         self.update_song()?;
 
         ratatui::run(|term| 

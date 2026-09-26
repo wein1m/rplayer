@@ -15,6 +15,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut opts = Options::new();
     opts.optopt("p", "path", "Path to music directory", "DIR");
+    opts.optflag("s", "shuffle", "shuffle songs");
     opts.optflag("h", "help", "print usage and exit");
 
     let matches = match opts.parse(&args[1..]) {
@@ -35,6 +36,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         process::exit(0);
     }
 
+    let shuffle = matches.opt_present("s");
+
     let music_path = match matches.opt_str("p") {
         Some(x) => {
             get_path(x.as_str())
@@ -50,7 +53,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     };
 
-    let mut app = App::new(music_path)?;
+    let mut app = App::new(music_path, shuffle)?;
 
     app.run()?;
 
